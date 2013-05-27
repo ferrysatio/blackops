@@ -14,13 +14,25 @@ class EmailReportCommand extends ContainerAwareCommand
     {
         $this->setName('email:report:sales')
             ->setDescription('Email weekly report for web sales')
-            ->addArgument('email', InputOption::VALUE_REQUIRED, 'Email address to send the report to.')
+            ->addArgument('email', InputArgument::REQUIRED, 'Email address to send the report to.')
+            ->addOption('includeIds', null, InputOption::VALUE_OPTIONAL, 'Include these website ids (comma separated)')
+            ->addOption('excludeIds', null, InputOption::VALUE_OPTIONAL, 'Exclude these website ids (comma separated)')
         ;
     }
 
     public function execute(InputInterface $input, OutputInterface $output)
     {
         $email = $input->getArgument('email');
+
+        $includeIds = $input->getOption('includeIds');
+        if (!is_null($includeIds)) {
+            $includeIds = explode(',', $includeIds);
+        }
+
+        $excludeIds = $input->getOption('excludeIds');
+        if (!is_null($excludeIds)) {
+            $excludeIds = explode(',', $excludeIds);
+        }
 
         if (is_null($email)) {
             throw new \InvalidArgumentException("Please specify an email");
@@ -33,7 +45,7 @@ class EmailReportCommand extends ContainerAwareCommand
             $dbModel->createTemporaryProductTableByDayInterval('p' . $i, 'price' . $i, 'qty' . $i, $i);
         }
 
-        $productsListLastWeek = $dbModel->getQtyDifferenceListLastWeek();
+        $productsListLastWeek = $dbModel->getQtyDifferenceListLastWeek($includeIds, $excludeIds);
         $productsSoldLastWeek = array();
         foreach ($productsListLastWeek as $product) {
             $pid = $product['pid'];
@@ -54,7 +66,7 @@ class EmailReportCommand extends ContainerAwareCommand
             }
         }
 
-        $productsList2WeeksAgo = $dbModel->getQtyDifferenceList2WeeksAgo();
+        $productsList2WeeksAgo = $dbModel->getQtyDifferenceList2WeeksAgo($includeIds, $excludeIds);
         $productsSold2WeeksAgo = array();
         foreach ($productsList2WeeksAgo as $product) {
             $pid = $product['pid'];
@@ -81,6 +93,7 @@ class EmailReportCommand extends ContainerAwareCommand
         $header = array(
             'PID',
             'Product',
+            'Brand',
             'Category Name',
             'SKU',
             'Color',
@@ -93,10 +106,19 @@ class EmailReportCommand extends ContainerAwareCommand
             'Sold 2 weeks ago'
         );
 
+        if (!is_null($includeIds) && in_array('13', $includeIds)) {
+            $header = array_merge($header, array(
+                'Event Name',
+                'Event Start',
+                'Event End',
+                'Fulfillment'
+            ));
+        }
+
         fputcsv($csvFilePointer, $header);
 
         $productCount = 0;
-        $qtyDiffListCurrentWeek = $dbModel->getQtyDifferenceListCurrentWeek();
+        $qtyDiffListCurrentWeek = $dbModel->getQtyDifferenceListCurrentWeek($includeIds, $excludeIds);
         foreach ($qtyDiffListCurrentWeek as $qtyDiff) {
             $pid = $qtyDiff['pid'];
             $qtyPrev = 0;
@@ -116,7 +138,8 @@ class EmailReportCommand extends ContainerAwareCommand
             }
             if ($totalSold) {
                 $prod['id']           = $pid;
-                $prod['name']         = $qtyDiff['name'];
+                $prod['name']         = $qtyDiff['pName'];
+                $prod['brand']        = $qtyDiff['brand'];
                 $prod['cat']          = $qtyDiff['cat'];
                 $prod['sku']          = $qtyDiff['sku'];
                 $prod['color']        = $qtyDiff['color'];
@@ -134,6 +157,12 @@ class EmailReportCommand extends ContainerAwareCommand
                     $prod['sold2WeeksAgo'] = $productsSold2WeeksAgo[$pid];
                 } else {
                     $prod['sold2WeeksAgo'] = 0;
+                }
+                if (!is_null($includeIds) && in_array('13', $includeIds)) {
+                    $prod['eventName']   = $qtyDiff['eventName'];
+                    $prod['startDate']   = $qtyDiff['startDate'];
+                    $prod['endDate']     = $qtyDiff['endDate'];
+                    $prod['fulfillment'] = $qtyDiff['fulfillment_point'];
                 }
                 $productCount++;
 

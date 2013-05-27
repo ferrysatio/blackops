@@ -38,13 +38,15 @@ class DbModel extends BaseModel
         return;
     }
 
-    public function getQtyDifferenceListCurrentWeek()
+    public function getQtyDifferenceListCurrentWeek($includedWebsiteIds = null, $excludedWebsiteIds = null)
     {
         $sql = "
-            SELECT *, p.id as pid
+            SELECT *, p.name as pName, oe.name as eventName, oe.startdate as startDate, oe.enddate as endDate, p.id as pid
             FROM
                 product p
                 LEFT JOIN website w on (p.website_id = w.id)
+                LEFT OUTER JOIN ozsale_product op on (p.id = op.product_id)
+                LEFT OUTER JOIN ozsale_event oe on (op.event_id = oe.id)
                 LEFT OUTER JOIN p8 as a on (p.id = a.product_id)
                 LEFT OUTER JOIN p7 as b on (p.id = b.product_id)
                 LEFT OUTER JOIN p6 as c on (p.id = c.product_id)
@@ -63,7 +65,31 @@ class DbModel extends BaseModel
                     f.qty3 <> g.qty2 or
                     g.qty2 <> h.qty1
                 )
+        ";
 
+        if (!is_null($includedWebsiteIds)) {
+            if (is_array($includedWebsiteIds)) {
+                $includedIds = implode(',', $includedWebsiteIds);
+            } else {
+                $includedIds = $includedWebsiteIds;
+            }
+            $sql .= "
+                AND p.website_id in (" . $includedIds . ")
+            ";
+        }
+
+        if (!is_null($excludedWebsiteIds)) {
+            if (is_array($excludedWebsiteIds)) {
+                $excludedIds = implode(',', $excludedWebsiteIds);
+            } else {
+                $excludedIds = $excludedWebsiteIds;
+            }
+            $sql .= "
+                AND p.website_id not in (" . $excludedIds . ")
+            ";
+        }
+
+        $sql .= "
                 GROUP BY p.id
                 ORDER BY p.id;
         ";
@@ -73,13 +99,15 @@ class DbModel extends BaseModel
         return $result;
     }
 
-    public function getQtyDifferenceListLastWeek()
+    public function getQtyDifferenceListLastWeek($includedWebsiteIds = null, $excludedWebsiteIds = null)
     {
         $sql = "
-            SELECT *, p.id as pid
+            SELECT *, p.name as pName, oe.name as eventName, oe.startdate as startDate, oe.enddate as endDate, p.id as pid
             FROM
                 product p
                 LEFT JOIN website w on (p.website_id = w.id)
+                LEFT OUTER JOIN ozsale_product op on (p.id = op.product_id)
+                LEFT OUTER JOIN ozsale_event oe on (op.event_id = oe.id)
                 LEFT OUTER JOIN p15 as a on (p.id = a.product_id)
                 LEFT OUTER JOIN p14 as b on (p.id = b.product_id)
                 LEFT OUTER JOIN p13 as c on (p.id = c.product_id)
@@ -98,7 +126,31 @@ class DbModel extends BaseModel
                     f.qty10 <> g.qty9 or
                     g.qty9 <> h.qty8
                 )
+        ";
 
+        if (!is_null($includedWebsiteIds)) {
+            if (is_array($includedWebsiteIds)) {
+                $includedIds = implode(',', $includedWebsiteIds);
+            } else {
+                $includedIds = $includedWebsiteIds;
+            }
+            $sql .= "
+                AND p.website_id in (" . $includedIds . ")
+            ";
+        }
+
+        if (!is_null($excludedWebsiteIds)) {
+            if (is_array($excludedWebsiteIds)) {
+                $excludedIds = implode(',', $excludedWebsiteIds);
+            } else {
+                $excludedIds = $excludedWebsiteIds;
+            }
+            $sql .= "
+                AND p.website_id not in (" . $excludedIds . ")
+            ";
+        }
+
+        $sql .= "
                 GROUP BY p.id
                 ORDER BY p.id;
         ";
@@ -108,13 +160,15 @@ class DbModel extends BaseModel
         return $result;
     }
 
-    public function getQtyDifferenceList2WeeksAgo()
+    public function getQtyDifferenceList2WeeksAgo($includedWebsiteIds = null, $excludedWebsiteIds = null)
     {
         $sql = "
-            SELECT *, p.id as pid
+            SELECT *, p.name as pName, oe.name as eventName, oe.startdate as startDate, oe.enddate as endDate, p.id as pid
             FROM
                 product p
                 LEFT JOIN website w on (p.website_id = w.id)
+                LEFT OUTER JOIN ozsale_product op on (p.id = op.product_id)
+                LEFT OUTER JOIN ozsale_event oe on (op.event_id = oe.id)
                 LEFT OUTER JOIN p22 as a on (p.id = a.product_id)
                 LEFT OUTER JOIN p21 as b on (p.id = b.product_id)
                 LEFT OUTER JOIN p20 as c on (p.id = c.product_id)
@@ -133,7 +187,31 @@ class DbModel extends BaseModel
                     f.qty17 <> g.qty16 or
                     g.qty16 <> h.qty15
                 )
+        ";
 
+        if (!is_null($includedWebsiteIds)) {
+            if (is_array($includedWebsiteIds)) {
+                $includedIds = implode(',', $includedWebsiteIds);
+            } else {
+                $includedIds = $includedWebsiteIds;
+            }
+            $sql .= "
+                AND p.website_id in (" . $includedIds . ")
+            ";
+        }
+
+        if (!is_null($excludedWebsiteIds)) {
+            if (is_array($excludedWebsiteIds)) {
+                $excludedIds = implode(',', $excludedWebsiteIds);
+            } else {
+                $excludedIds = $excludedWebsiteIds;
+            }
+            $sql .= "
+                AND p.website_id not in (" . $excludedIds . ")
+            ";
+        }
+
+        $sql .= "
                 GROUP BY p.id
                 ORDER BY p.id;
         ";
