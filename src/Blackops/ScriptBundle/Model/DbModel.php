@@ -38,7 +38,7 @@ class DbModel extends BaseModel
         return;
     }
 
-    public function getQtyDifferenceListCurrentWeek($includedWebsiteIds = null, $excludedWebsiteIds = null)
+    public function getQtyDifferenceListCurrentWeek($includedWebsiteIds = null, $excludedWebsiteIds = null, $getQtyDiff = true)
     {
         $sql = "
             SELECT *, p.name as pName, oe.name as eventName, oe.startdate as startDate, oe.enddate as endDate, p.id as pid
@@ -56,6 +56,10 @@ class DbModel extends BaseModel
                 LEFT OUTER JOIN p2 as g on (p.id = g.product_id)
                 LEFT OUTER JOIN p1 as h on (p.id = h.product_id)
                 WHERE
+        ";
+
+        if ($getQtyDiff) {
+            $sql .= "
                 (
                     a.qty8 <> b.qty7 or
                     b.qty7 <> c.qty6 or
@@ -65,7 +69,8 @@ class DbModel extends BaseModel
                     f.qty3 <> g.qty2 or
                     g.qty2 <> h.qty1
                 )
-        ";
+            ";
+        }
 
         if (!is_null($includedWebsiteIds)) {
             if (is_array($includedWebsiteIds)) {
@@ -73,8 +78,13 @@ class DbModel extends BaseModel
             } else {
                 $includedIds = $includedWebsiteIds;
             }
+            if ($getQtyDiff) {
+                $sql .= "
+                    AND
+                ";
+            }
             $sql .= "
-                AND p.website_id in (" . $includedIds . ")
+                p.website_id in (" . $includedIds . ")
             ";
         }
 
@@ -84,8 +94,13 @@ class DbModel extends BaseModel
             } else {
                 $excludedIds = $excludedWebsiteIds;
             }
+            if ($getQtyDiff) {
+                $sql .= "
+                    AND
+                ";
+            }
             $sql .= "
-                AND p.website_id not in (" . $excludedIds . ")
+                p.website_id not in (" . $excludedIds . ")
             ";
         }
 
@@ -99,7 +114,7 @@ class DbModel extends BaseModel
         return $result;
     }
 
-    public function getQtyDifferenceListLastWeek($includedWebsiteIds = null, $excludedWebsiteIds = null)
+    public function getQtyDifferenceListLastWeek($includedWebsiteIds = null, $excludedWebsiteIds = null, $getQtyDiff = true)
     {
         $sql = "
             SELECT *, p.name as pName, oe.name as eventName, oe.startdate as startDate, oe.enddate as endDate, p.id as pid
@@ -117,6 +132,10 @@ class DbModel extends BaseModel
                 LEFT OUTER JOIN p9 as g on (p.id = g.product_id)
                 LEFT OUTER JOIN p8 as h on (p.id = h.product_id)
                 WHERE
+        ";
+
+        if ($getQtyDiff) {
+            $sql .= "
                 (
                     a.qty15 <> b.qty14 or
                     b.qty14 <> c.qty13 or
@@ -126,7 +145,8 @@ class DbModel extends BaseModel
                     f.qty10 <> g.qty9 or
                     g.qty9 <> h.qty8
                 )
-        ";
+            ";
+        }
 
         if (!is_null($includedWebsiteIds)) {
             if (is_array($includedWebsiteIds)) {
@@ -134,8 +154,13 @@ class DbModel extends BaseModel
             } else {
                 $includedIds = $includedWebsiteIds;
             }
+            if ($getQtyDiff) {
+                $sql .= "
+                    AND
+                ";
+            }
             $sql .= "
-                AND p.website_id in (" . $includedIds . ")
+                p.website_id in (" . $includedIds . ")
             ";
         }
 
@@ -145,8 +170,13 @@ class DbModel extends BaseModel
             } else {
                 $excludedIds = $excludedWebsiteIds;
             }
+            if ($getQtyDiff) {
+                $sql .= "
+                    AND
+                ";
+            }
             $sql .= "
-                AND p.website_id not in (" . $excludedIds . ")
+                p.website_id not in (" . $excludedIds . ")
             ";
         }
 
@@ -160,7 +190,7 @@ class DbModel extends BaseModel
         return $result;
     }
 
-    public function getQtyDifferenceList2WeeksAgo($includedWebsiteIds = null, $excludedWebsiteIds = null)
+    public function getQtyDifferenceList2WeeksAgo($includedWebsiteIds = null, $excludedWebsiteIds = null, $getQtyDiff = true)
     {
         $sql = "
             SELECT *, p.name as pName, oe.name as eventName, oe.startdate as startDate, oe.enddate as endDate, p.id as pid
@@ -178,6 +208,10 @@ class DbModel extends BaseModel
                 LEFT OUTER JOIN p16 as g on (p.id = g.product_id)
                 LEFT OUTER JOIN p15 as h on (p.id = h.product_id)
                 WHERE
+        ";
+
+        if ($getQtyDiff) {
+            $sql .= "
                 (
                     a.qty22 <> b.qty21 or
                     b.qty21 <> c.qty20 or
@@ -187,7 +221,8 @@ class DbModel extends BaseModel
                     f.qty17 <> g.qty16 or
                     g.qty16 <> h.qty15
                 )
-        ";
+            ";
+        }
 
         if (!is_null($includedWebsiteIds)) {
             if (is_array($includedWebsiteIds)) {
@@ -195,8 +230,13 @@ class DbModel extends BaseModel
             } else {
                 $includedIds = $includedWebsiteIds;
             }
+            if ($getQtyDiff) {
+                $sql .= "
+                    AND
+                ";
+            }
             $sql .= "
-                AND p.website_id in (" . $includedIds . ")
+                p.website_id in (" . $includedIds . ")
             ";
         }
 
@@ -206,8 +246,13 @@ class DbModel extends BaseModel
             } else {
                 $excludedIds = $excludedWebsiteIds;
             }
+            if ($getQtyDiff) {
+                $sql .= "
+                    AND
+                ";
+            }
             $sql .= "
-                AND p.website_id not in (" . $excludedIds . ")
+                p.website_id not in (" . $excludedIds . ")
             ";
         }
 

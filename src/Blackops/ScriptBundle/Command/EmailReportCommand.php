@@ -38,14 +38,19 @@ class EmailReportCommand extends ContainerAwareCommand
             throw new \InvalidArgumentException("Please specify an email");
         }
 
+        $getQtyDiff = true;
+        if (!is_null($includeIds) && in_array('13', $includeIds)) {
+            $getQtyDiff = true;
+        }
+
         /** @var \Blackops\ScriptBundle\Model\DbModel $dbModel */
         $dbModel = $this->getContainer()->get('blackops.script.dbmodel');
 
         for ($i = 1; $i <= 22; $i++) {
-            $dbModel->createTemporaryProductTableByDayInterval('p' . $i, 'price' . $i, 'qty' . $i, $i);
+            $dbModel->createTemporaryProductTableByDayInterval('p' . $i, 'price' . $i, 'qty' . $i, $i - 1);
         }
 
-        $productsListLastWeek = $dbModel->getQtyDifferenceListLastWeek($includeIds, $excludeIds);
+        $productsListLastWeek = $dbModel->getQtyDifferenceListLastWeek($includeIds, $excludeIds, $getQtyDiff);
         $productsSoldLastWeek = array();
         foreach ($productsListLastWeek as $product) {
             $pid = $product['pid'];
@@ -61,12 +66,12 @@ class EmailReportCommand extends ContainerAwareCommand
                     }
                 }
             }
-            if ($totalSold) {
+            if ($totalSold || (!is_null($includeIds) && in_array('13', $includeIds))) {
                 $productsSoldLastWeek[$pid] = $totalSold;
             }
         }
 
-        $productsList2WeeksAgo = $dbModel->getQtyDifferenceList2WeeksAgo($includeIds, $excludeIds);
+        $productsList2WeeksAgo = $dbModel->getQtyDifferenceList2WeeksAgo($includeIds, $excludeIds, $getQtyDiff);
         $productsSold2WeeksAgo = array();
         foreach ($productsList2WeeksAgo as $product) {
             $pid = $product['pid'];
@@ -82,7 +87,7 @@ class EmailReportCommand extends ContainerAwareCommand
                     }
                 }
             }
-            if ($totalSold) {
+            if ($totalSold || (!is_null($includeIds) && in_array('13', $includeIds))) {
                 $productsSold2WeeksAgo[$pid] = $totalSold;
             }
         }
@@ -102,9 +107,14 @@ class EmailReportCommand extends ContainerAwareCommand
             'Site',
             'Price',
             'Sold this week',
-            'Sold last week',
-            'Sold 2 weeks ago'
         );
+
+        if (!is_null($excludeIds) && in_array('13', $excludeIds)) {
+            $header = array_merge($header, array(
+                'Sold last week',
+                'Sold 2 weeks ago'
+            ));
+        }
 
         if (!is_null($includeIds) && in_array('13', $includeIds)) {
             $header = array_merge($header, array(
@@ -118,7 +128,7 @@ class EmailReportCommand extends ContainerAwareCommand
         fputcsv($csvFilePointer, $header);
 
         $productCount = 0;
-        $qtyDiffListCurrentWeek = $dbModel->getQtyDifferenceListCurrentWeek($includeIds, $excludeIds);
+        $qtyDiffListCurrentWeek = $dbModel->getQtyDifferenceListCurrentWeek($includeIds, $excludeIds, $getQtyDiff);
         foreach ($qtyDiffListCurrentWeek as $qtyDiff) {
             $pid = $qtyDiff['pid'];
             $qtyPrev = 0;
@@ -136,7 +146,7 @@ class EmailReportCommand extends ContainerAwareCommand
                     }
                 }
             }
-            if ($totalSold) {
+            if ($totalSold || (!is_null($includeIds) && in_array('13', $includeIds))) {
                 $prod['id']           = $pid;
                 $prod['name']         = $qtyDiff['pName'];
                 $prod['brand']        = $qtyDiff['brand'];
@@ -148,15 +158,17 @@ class EmailReportCommand extends ContainerAwareCommand
                 $prod['domain']       = $qtyDiff['url'];
                 $prod['price']        = '$' . $lastPrice;
                 $prod['soldThisWeek'] = $totalSold;
-                if (isset($productsSoldLastWeek[$pid])) {
-                    $prod['soldLastWeek'] = $productsSoldLastWeek[$pid];
-                } else {
-                    $prod['soldLastWeek'] = 0;
-                }
-                if (isset($productsSold2WeeksAgo[$pid])) {
-                    $prod['sold2WeeksAgo'] = $productsSold2WeeksAgo[$pid];
-                } else {
-                    $prod['sold2WeeksAgo'] = 0;
+                if (!is_null($excludeIds) && in_array('13', $excludeIds)) {
+                    if (isset($productsSoldLastWeek[$pid])) {
+                        $prod['soldLastWeek'] = $productsSoldLastWeek[$pid];
+                    } else {
+                        $prod['soldLastWeek'] = 0;
+                    }
+                    if (isset($productsSold2WeeksAgo[$pid])) {
+                        $prod['sold2WeeksAgo'] = $productsSold2WeeksAgo[$pid];
+                    } else {
+                        $prod['sold2WeeksAgo'] = 0;
+                    }
                 }
                 if (!is_null($includeIds) && in_array('13', $includeIds)) {
                     $prod['eventName']   = $qtyDiff['eventName'];
