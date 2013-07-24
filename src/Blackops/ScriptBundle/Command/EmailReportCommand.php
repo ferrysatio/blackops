@@ -46,49 +46,56 @@ class EmailReportCommand extends ContainerAwareCommand
         /** @var \Blackops\ScriptBundle\Model\DbModel $dbModel */
         $dbModel = $this->getContainer()->get('blackops.script.dbmodel');
 
-        for ($i = 1; $i <= 22; $i++) {
+        $maxDay = 22;
+        if (!is_null($includeIds) && in_array('13', $includeIds)) {
+            $maxDay = 8;
+        }
+
+        for ($i = 1; $i <= $maxDay; $i++) {
             $dbModel->createTemporaryProductTableByDayInterval('p' . $i, 'price' . $i, 'qty' . $i, $i - 1);
         }
 
-        $productsListLastWeek = $dbModel->getQtyDifferenceListLastWeek($includeIds, $excludeIds, $getQtyDiff);
-        $productsSoldLastWeek = array();
-        foreach ($productsListLastWeek as $product) {
-            $pid = $product['pid'];
-            $qtyPrev = 0;
-            $qtyNow = 0;
-            $totalSold = 0;
-            for ($i = 15; $i >= 8; $i--) {
-                if (!is_null($product['qty' . $i])) {
-                    $qtyPrev = $qtyNow;
-                    $qtyNow  = $product['qty' . $i];
-                    if (($qtyPrev - $qtyNow) > 0) {
-                        $totalSold += ($qtyPrev - $qtyNow);
+        if (!is_null($excludeIds) && in_array('13', $excludeIds)) {
+            $productsListLastWeek = $dbModel->getQtyDifferenceListLastWeek($includeIds, $excludeIds, $getQtyDiff);
+            $productsSoldLastWeek = array();
+            foreach ($productsListLastWeek as $product) {
+                $pid = $product['pid'];
+                $qtyPrev = 0;
+                $qtyNow = 0;
+                $totalSold = 0;
+                for ($i = 15; $i >= 8; $i--) {
+                    if (!is_null($product['qty' . $i])) {
+                        $qtyPrev = $qtyNow;
+                        $qtyNow  = $product['qty' . $i];
+                        if (($qtyPrev - $qtyNow) > 0) {
+                            $totalSold += ($qtyPrev - $qtyNow);
+                        }
                     }
                 }
+                if ($totalSold || (!is_null($includeIds) && in_array('13', $includeIds))) {
+                    $productsSoldLastWeek[$pid] = $totalSold;
+                }
             }
-            if ($totalSold || (!is_null($includeIds) && in_array('13', $includeIds))) {
-                $productsSoldLastWeek[$pid] = $totalSold;
-            }
-        }
 
-        $productsList2WeeksAgo = $dbModel->getQtyDifferenceList2WeeksAgo($includeIds, $excludeIds, $getQtyDiff);
-        $productsSold2WeeksAgo = array();
-        foreach ($productsList2WeeksAgo as $product) {
-            $pid = $product['pid'];
-            $qtyPrev = 0;
-            $qtyNow = 0;
-            $totalSold = 0;
-            for ($i = 22; $i >= 15; $i--) {
-                if (!is_null($product['qty' . $i])) {
-                    $qtyPrev = $qtyNow;
-                    $qtyNow  = $product['qty' . $i];
-                    if (($qtyPrev - $qtyNow) > 0) {
-                        $totalSold += ($qtyPrev - $qtyNow);
+            $productsList2WeeksAgo = $dbModel->getQtyDifferenceList2WeeksAgo($includeIds, $excludeIds, $getQtyDiff);
+            $productsSold2WeeksAgo = array();
+            foreach ($productsList2WeeksAgo as $product) {
+                $pid = $product['pid'];
+                $qtyPrev = 0;
+                $qtyNow = 0;
+                $totalSold = 0;
+                for ($i = 22; $i >= 15; $i--) {
+                    if (!is_null($product['qty' . $i])) {
+                        $qtyPrev = $qtyNow;
+                        $qtyNow  = $product['qty' . $i];
+                        if (($qtyPrev - $qtyNow) > 0) {
+                            $totalSold += ($qtyPrev - $qtyNow);
+                        }
                     }
                 }
-            }
-            if ($totalSold || (!is_null($includeIds) && in_array('13', $includeIds))) {
-                $productsSold2WeeksAgo[$pid] = $totalSold;
+                if ($totalSold || (!is_null($includeIds) && in_array('13', $includeIds))) {
+                    $productsSold2WeeksAgo[$pid] = $totalSold;
+                }
             }
         }
 
@@ -148,14 +155,14 @@ class EmailReportCommand extends ContainerAwareCommand
             }
             if ($totalSold || (!is_null($includeIds) && in_array('13', $includeIds))) {
                 $prod['id']           = $pid;
-                $prod['name']         = $qtyDiff['pName'];
-                $prod['brand']        = $qtyDiff['brand'];
-                $prod['cat']          = $qtyDiff['cat'];
-                $prod['sku']          = $qtyDiff['sku'];
-                $prod['color']        = $qtyDiff['color'];
-                $prod['size']         = $qtyDiff['size'];
-                $prod['imageUrl']     = $qtyDiff['image_url'];
-                $prod['domain']       = $qtyDiff['url'];
+                $prod['name']         = trim($qtyDiff['pName']);
+                $prod['brand']        = trim($qtyDiff['brand']);
+                $prod['cat']          = trim($qtyDiff['cat']);
+                $prod['sku']          = trim($qtyDiff['sku']);
+                $prod['color']        = trim($qtyDiff['color']);
+                $prod['size']         = trim($qtyDiff['size']);
+                $prod['imageUrl']     = trim($qtyDiff['image_url']);
+                $prod['domain']       = trim($qtyDiff['url']);
                 $prod['price']        = '$' . $lastPrice;
                 $prod['soldThisWeek'] = $totalSold;
                 if (!is_null($excludeIds) && in_array('13', $excludeIds)) {
@@ -171,10 +178,10 @@ class EmailReportCommand extends ContainerAwareCommand
                     }
                 }
                 if (!is_null($includeIds) && in_array('13', $includeIds)) {
-                    $prod['eventName']   = $qtyDiff['eventName'];
-                    $prod['startDate']   = $qtyDiff['startDate'];
-                    $prod['endDate']     = $qtyDiff['endDate'];
-                    $prod['fulfillment'] = $qtyDiff['fulfillment_point'];
+                    $prod['eventName']   = trim($qtyDiff['eventName']);
+                    $prod['startDate']   = trim($qtyDiff['startDate']);
+                    $prod['endDate']     = trim($qtyDiff['endDate']);
+                    $prod['fulfillment'] = trim($qtyDiff['fulfillment_point']);
                 }
                 $productCount++;
 
@@ -190,14 +197,14 @@ class EmailReportCommand extends ContainerAwareCommand
             $now = new \DateTime();
             $attachment = \Swift_Attachment::fromPath($csvFileName, 'text/csv');
             $emailSubject = 'Blackops Weekly Sales Report ' . $now->format("Y-m-d H:i");
-
+            $output->writeln($csvFileName);
             $message = \Swift_Message::newInstance()
                 ->setSubject($emailSubject)
                 ->setFrom('noreply@catchoftheday.com.au')
                 ->setTo($email);
             $message->attach($attachment);
             $mailer->send($message);
-            unlink($csvFileName);
+            //unlink($csvFileName);
         }
     }
 }

@@ -31,8 +31,10 @@ class DbModel extends BaseModel
                 price as $priceColumn,
                 qty as $qtyColumn
             FROM price_qty
-            WHERE created = (date(now() - interval $dayInterval day)))
+            WHERE created = (date(now() - interval $dayInterval day)));
         ";
+
+        //echo $sql;
 
         $this->conn->executeQuery($sql, array(), array());
         return;
@@ -108,7 +110,7 @@ class DbModel extends BaseModel
                 GROUP BY p.id
                 ORDER BY p.id;
         ";
-
+        //echo $sql;
         $statement = $this->conn->executeQuery($sql, array(), array());
         $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
         return $result;
