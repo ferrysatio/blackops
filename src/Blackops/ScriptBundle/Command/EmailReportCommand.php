@@ -43,6 +43,10 @@ class EmailReportCommand extends ContainerAwareCommand
             $getQtyDiff = true;
         }
 
+        if (!is_null($includeIds) && in_array('2', $includeIds)) {
+            $getQtyDiff = false;
+        }
+
         /** @var \Blackops\ScriptBundle\Model\DbModel $dbModel */
         $dbModel = $this->getContainer()->get('blackops.script.dbmodel');
 
@@ -55,7 +59,7 @@ class EmailReportCommand extends ContainerAwareCommand
             $dbModel->createTemporaryProductTableByDayInterval('p' . $i, 'price' . $i, 'qty' . $i, $i - 1);
         }
 
-        if (!is_null($excludeIds) && in_array('13', $excludeIds)) {
+        if ((!is_null($excludeIds) && in_array('13', $excludeIds)) || (!is_null($includeIds) && in_array('2', $includeIds))) {
             $productsListLastWeek = $dbModel->getQtyDifferenceListLastWeek($includeIds, $excludeIds, $getQtyDiff);
             $productsSoldLastWeek = array();
             foreach ($productsListLastWeek as $product) {
@@ -165,7 +169,7 @@ class EmailReportCommand extends ContainerAwareCommand
                 $prod['domain']       = trim($qtyDiff['url']);
                 $prod['price']        = '$' . $lastPrice;
                 $prod['soldThisWeek'] = $totalSold;
-                if (!is_null($excludeIds) && in_array('13', $excludeIds)) {
+                if ((!is_null($excludeIds) && in_array('13', $excludeIds)) || (!is_null($includeIds) && in_array('2', $includeIds))) {
                     if (isset($productsSoldLastWeek[$pid])) {
                         $prod['soldLastWeek'] = $productsSoldLastWeek[$pid];
                     } else {
