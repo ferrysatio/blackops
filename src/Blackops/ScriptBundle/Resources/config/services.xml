@@ -8,5 +8,9 @@
         <service id="blackops.script.dbmodel" class="Blackops\ScriptBundle\Model\DbModel">
             <argument type="service" id="database_connection" />
         </service>
+
+        <service id="blackops.script.dbmodel2" class="Blackops\ScriptBundle\Model\DbModel2">
+            <argument type="service" id="database_connection" />
+        </service>
     </services>
 </container>
