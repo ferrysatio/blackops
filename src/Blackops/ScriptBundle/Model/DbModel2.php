@@ -41,7 +41,7 @@ class DbModel2 extends BaseModel
             WHERE created = (date(now() - interval $dayInterval day)));
         ";
 
-        echo $sql;
+        //echo $sql;
 
         $this->conn->executeQuery($sql, array(), array());
         return;
@@ -105,7 +105,7 @@ class DbModel2 extends BaseModel
             ORDER BY p.id;
         ";
 
-        echo $sql;
+        //echo $sql;
 
         $statement = $this->conn->executeQuery($sql, array(), array());
         $result = $statement->fetchAll(\PDO::FETCH_ASSOC);

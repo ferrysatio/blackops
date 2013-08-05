@@ -169,8 +169,8 @@ class EmailReport2Command extends ContainerAwareCommand
                 $output->writeln($zipped['filename']);
                 $attachment = \Swift_Attachment::fromPath($zipped['filename'], 'application/zip');
                 $message->attach($attachment);
-                //unlink($zipped['filename']);
-                //unlink($csvFileName);
+                unlink($zipped['filename']);
+                unlink($csvFileName);
             }
         }
 
