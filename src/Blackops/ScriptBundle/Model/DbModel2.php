@@ -55,11 +55,10 @@ class DbModel2 extends BaseModel
         $productJoinTableQuery = '';
         $productWhereQuery     = '';
 
-        if (isset($table['composite']) && isset($table['event'])) {
+        if (isset($table['event'])) {
             $withEventSelectQuery = ', oe.name as eventName, oe.startdate as startDate, oe.enddate as endDate';
             $withEventFromQuery   = "
-                LEFT OUTER JOIN {$table['composite']} op on (p.id = op.product_id)
-                LEFT OUTER JOIN {$table['event']} oe on (op.event_id = oe.id)
+                LEFT OUTER JOIN {$table['event']} oe on (p.event_id = oe.id)
             ";
         }
 

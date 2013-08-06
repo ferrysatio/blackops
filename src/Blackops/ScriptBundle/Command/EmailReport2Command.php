@@ -41,6 +41,7 @@ class EmailReport2Command extends ContainerAwareCommand
                             ->setTo($email);
 
         $haveDataToSend = false;
+        $zippedFilename = array();
         foreach ($websites as $website) {
             $results = array();
             $maxDay = bcadd(bcmul($website['weeks'], 7, 0), 1, 0);
@@ -169,13 +170,16 @@ class EmailReport2Command extends ContainerAwareCommand
                 $output->writeln($zipped['filename']);
                 $attachment = \Swift_Attachment::fromPath($zipped['filename'], 'application/zip');
                 $message->attach($attachment);
-                unlink($zipped['filename']);
+                $zippedFilename[] = $zipped['filename'];
                 unlink($csvFileName);
             }
         }
 
         if ($haveDataToSend) {
             $mailer->send($message);
+            foreach ($zippedFilename as $file) {
+                unlink($file);
+            }
         }
     }
 
@@ -194,7 +198,6 @@ class EmailReport2Command extends ContainerAwareCommand
             );
             if (intval($web['have_event']) == 1) {
                 $table = array_merge($table, array(
-                    'composite' => $temp[0] . '_product',
                     'event'     => $temp[0] . '_event',
                 ));
             }
