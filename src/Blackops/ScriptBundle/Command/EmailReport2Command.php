@@ -149,7 +149,7 @@ class EmailReport2Command extends ContainerAwareCommand
                         }
                     }
 
-                    if (isset($website['composite']) && isset($website['event'])) {
+                    if (isset($website['event'])) {
                         $prod['eventName']   = trim($product['eventName']);
                         $prod['startDate']   = trim($product['startDate']);
                         $prod['endDate']     = trim($product['endDate']);
