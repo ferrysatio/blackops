@@ -112,7 +112,7 @@ class EmailReport2Command extends ContainerAwareCommand
                 ));
             }
 
-            if (isset($website['composite']) && isset($website['event'])) {
+            if (isset($website['event'])) {
                 $header = array_merge($header, array(
                     'Event Name',
                     'Event Start',
