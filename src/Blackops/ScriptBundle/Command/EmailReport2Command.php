@@ -173,6 +173,7 @@ class EmailReport2Command extends ContainerAwareCommand
                 $zippedFilename[] = $zipped['filename'];
             }
             unlink($csvFileName);
+            unset($results);
         }
 
         if ($haveDataToSend) {
