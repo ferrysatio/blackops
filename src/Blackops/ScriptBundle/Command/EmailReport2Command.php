@@ -67,7 +67,7 @@ class EmailReport2Command extends ContainerAwareCommand
                     $dayFrom   = bcadd(bcmul($week, 7, 0), 1, 0);
                     $dayTo     = bcsub(bcmul($week, 7, 0), 6, 0);
                     for ($i = $dayFrom; $i >= $dayTo; $i--) {
-                        if (!is_null($product['qty' . $i])) {
+                        if (!is_null($product['qty' . $i]) && $product['qty' . $i] != '-1') {
                             $qtyPrev   = $qtyNow;
                             $qtyNow    = $product['qty' . $i];
 
