@@ -46,7 +46,7 @@ class EmailReport2Command extends ContainerAwareCommand
             $results = array();
             $maxDay = bcadd(bcmul($website['weeks'], 7, 0), 1, 0);
             for ($i = 1; $i <= $maxDay; $i++) {
-                $dbModel->createTemporaryProductTableByDayInterval(str_replace('-', '', $website['name']) . '_p' . $i, $website['pq'], 'price' . $i, 'qty' . $i, $i - 1);
+                $dbModel->createTemporaryProductTableByDayInterval($website['name'] . '_p' . $i, $website['pq'], 'price' . $i, 'qty' . $i, $i - 1);
             }
 
             for ($i = 1; $i <= $website['weeks']; $i++) {
@@ -191,7 +191,7 @@ class EmailReport2Command extends ContainerAwareCommand
             $temp = explode('.', $web['url']);
             $table = array(
                 'id'      => $web['id'],
-                'name'    => $temp[0],
+                'name'    => str_replace('-', '', $temp[0]),
                 'product' => 'product_' . $temp[0],
                 'pq'      => 'pq_' . str_replace('-', '', $temp[0]),
                 'weeks'   => $web['report_weeks'],
