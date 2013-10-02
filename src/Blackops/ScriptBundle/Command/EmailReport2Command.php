@@ -192,14 +192,14 @@ class EmailReport2Command extends ContainerAwareCommand
             $table = array(
                 'id'      => $web['id'],
                 'name'    => str_replace('-', '', $temp[0]),
-                'product' => 'product_' . $temp[0],
+                'product' => 'product_' . str_replace('-', '', $temp[0]),
                 'pq'      => 'pq_' . str_replace('-', '', $temp[0]),
                 'weeks'   => $web['report_weeks'],
                 'qtyDiff' => (intval($web['daily_scraping']) == 0) ? false : true,
             );
             if (intval($web['have_event']) == 1) {
                 $table = array_merge($table, array(
-                    'event'     => $temp[0] . '_event',
+                    'event'     => str_replace('-', '', $temp[0]) . '_event',
                 ));
             }
             $websites[] = $table;
