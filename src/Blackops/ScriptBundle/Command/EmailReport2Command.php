@@ -193,7 +193,7 @@ class EmailReport2Command extends ContainerAwareCommand
                 'id'      => $web['id'],
                 'name'    => $temp[0],
                 'product' => 'product_' . $temp[0],
-                'pq'      => 'pq_' . $temp[0],
+                'pq'      => 'pq_' . str_replace('-', '', $temp[0]),
                 'weeks'   => $web['report_weeks'],
                 'qtyDiff' => (intval($web['daily_scraping']) == 0) ? false : true,
             );
