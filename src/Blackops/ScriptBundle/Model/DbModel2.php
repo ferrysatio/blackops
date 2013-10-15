@@ -25,7 +25,7 @@ class DbModel2 extends BaseModel
         return $result;
     }
 
-    public function createTemporaryProductTableByDayInterval($temporaryTableName, $fromTable, $priceColumn, $qtyColumn, $dayInterval)
+    public function createTemporaryProductTableByDayInterval($temporaryTableName, $fromTable, $priceColumn, $qtyColumn, $dayInterval, $dateStart)
     {
         $sql = "
             CREATE TEMPORARY TABLE $temporaryTableName (
@@ -38,7 +38,7 @@ class DbModel2 extends BaseModel
                 price as $priceColumn,
                 qty as $qtyColumn
             FROM $fromTable
-            WHERE created = (date(now() - interval $dayInterval day)));
+            WHERE created = (date('$dateStart' - interval $dayInterval day)));
         ";
 
         //echo $sql;

@@ -16,6 +16,8 @@ class EmailReport2Command extends ContainerAwareCommand
             ->setDescription('Email weekly report for web sales')
             ->addArgument('email', InputArgument::REQUIRED, 'Email address to send the report to.')
             ->addOption('onlyIds', null, InputOption::VALUE_OPTIONAL, 'Only these website ids (comma separated)', null)
+            ->addOption('dateStart', null, InputOption::VALUE_OPTIONAL, 'Start from this date', date('Y-m-d'))
+            ->addOption('allSales', null, InputOption::VALUE_NONE, 'Include all sales, not only based on week 1 sales', null)
         ;
     }
 
@@ -27,6 +29,8 @@ class EmailReport2Command extends ContainerAwareCommand
         }
 
         $websiteIds = $input->getOption('onlyIds');
+        $dateStart  = new \DateTime($input->getOption('dateStart'));
+        $allSales   = $input->getOption('allSales');
 
         /** @var \Blackops\ScriptBundle\Model\DbModel2 $dbModel */
         $dbModel  = $this->getContainer()->get('blackops.script.dbmodel2');
@@ -46,7 +50,7 @@ class EmailReport2Command extends ContainerAwareCommand
             $results = array();
             $maxDay = bcadd(bcmul($website['weeks'], 7, 0), 1, 0);
             for ($i = 1; $i <= $maxDay; $i++) {
-                $dbModel->createTemporaryProductTableByDayInterval($website['name'] . '_p' . $i, $website['pq'], 'price' . $i, 'qty' . $i, $i - 1);
+                $dbModel->createTemporaryProductTableByDayInterval($website['name'] . '_p' . $i, $website['pq'], 'price' . $i, 'qty' . $i, $i - 1, $dateStart->format('Y-m-d'));
             }
 
             for ($i = 1; $i <= $website['weeks']; $i++) {
@@ -103,62 +107,133 @@ class EmailReport2Command extends ContainerAwareCommand
                 'Size',
                 'Image',
                 'Site',
-                'Price',
             );
 
-            for ($i = 1; $i <= count($results); $i++) {
-                $header = array_merge($header, array(
-                    'Sold last ' . $i . ' week',
-                ));
-            }
+            if ($allSales) {
+                if (isset($website['event'])) {
+                    $header = array_merge($header, array(
+                        'Event Name',
+                        'Event Start',
+                        'Event End',
+                        'Fulfillment'
+                    ));
+                }
+                for ($i = 1; $i <= count($results); $i++) {
+                    $header = array_merge($header, array(
+                        'Price last ' . $i . ' week',
+                        'Sold last ' . $i . ' week',
+                    ));
+                }
+            } else {
+                $header = array_merge($header, array('Price'));
 
-            if (isset($website['event'])) {
-                $header = array_merge($header, array(
-                    'Event Name',
-                    'Event Start',
-                    'Event End',
-                    'Fulfillment'
-                ));
+                for ($i = 1; $i <= count($results); $i++) {
+                    $header = array_merge($header, array(
+                        'Sold last ' . $i . ' week',
+                    ));
+                }
+
+                if (isset($website['event'])) {
+                    $header = array_merge($header, array(
+                        'Event Name',
+                        'Event Start',
+                        'Event End',
+                        'Fulfillment'
+                    ));
+                }
             }
 
             fputcsv($csvFilePointer, $header);
 
             $productCount = 0;
-            foreach ($results[1] as $product) {
-                $pid = $product['pid'];
-                if (isset($productSold[1][$pid]) && intval($productSold[1][$pid]) > 0) {
-                    $prod['id']            = $pid;
-                    $prod['name']          = trim($product['pName']);
-                    $prod['brand']         = trim($product['brand']);
-                    $prod['cat']           = trim($product['cat']);
-                    $prod['sku']           = trim($product['sku']);
-                    $prod['color']         = trim($product['color']);
-                    $prod['size']          = trim($product['size']);
-                    $prod['imageUrl']      = trim($product['image_url']);
-                    $prod['domain']        = trim($product['url']);
-                    $prod['price']         = '$' . $productSold[1][$pid]['price'];
-                    $prod['soldLast1Week'] = $productSold[1][$pid]['units'];
-
-                    if (count($results) > 1) {
-                        for ($i = 2; $i <= count($results); $i++) {
-                            if (isset($productSold[$i][$pid])) {
-                                $prod['soldLast' . $i . 'Week'] = $productSold[$i][$pid]['units'];
-                            } else {
-                                $prod['soldLast' . $i . 'Week'] = 0;
+            if ($allSales) {
+                $productsList = array();
+                foreach ($results as $week => $products) {
+                    foreach ($products as $product) {
+                        $pid = $product['pid'];
+                        if (array_key_exists($pid, $productsList)) {
+                            // update price and sold column when pid is found sold on a different week
+                            if (isset($productSold[$week][$pid])) {
+                                $productsList[$pid]['priceLast' . $week . 'Week'] = '$' . $productSold[$week][$pid]['price'];
+                                $productsList[$pid]['soldLast' . $week . 'Week']  = $productSold[$week][$pid]['units'];
                             }
+                        } else {
+                            $prod['id']            = $pid;
+                            $prod['name']          = trim($product['pName']);
+                            $prod['brand']         = trim($product['brand']);
+                            $prod['cat']           = trim($product['cat']);
+                            $prod['sku']           = trim($product['sku']);
+                            $prod['color']         = trim($product['color']);
+                            $prod['size']          = trim($product['size']);
+                            $prod['imageUrl']      = trim($product['image_url']);
+                            $prod['domain']        = trim($product['url']);
+
+                            if (isset($website['event'])) {
+                                $prod['eventName']   = trim($product['eventName']);
+                                $prod['startDate']   = trim($product['startDate']);
+                                $prod['endDate']     = trim($product['endDate']);
+                                $prod['fulfillment'] = trim($product['fulfillment_point']);
+                            }
+
+                            // initialise all price and sold columns
+                            for ($j = 1; $j <= count($results); $j++) {
+                                $prod['priceLast' . $j . 'Week'] = '$0.00';
+                                $prod['soldLast' . $j . 'Week']  = 0;
+                            }
+
+                            // update the week column when first pid found
+                            if (isset($productSold[$week][$pid])) {
+                                $prod['priceLast' . $week . 'Week'] = '$' . $productSold[$week][$pid]['price'];
+                                $prod['soldLast' . $week . 'Week']  = $productSold[$week][$pid]['units'];
+                            }
+
+                            $productsList[$pid] = $prod;
                         }
                     }
+                }
 
-                    if (isset($website['event'])) {
-                        $prod['eventName']   = trim($product['eventName']);
-                        $prod['startDate']   = trim($product['startDate']);
-                        $prod['endDate']     = trim($product['endDate']);
-                        $prod['fulfillment'] = trim($product['fulfillment_point']);
-                    }
+                foreach ($productsList as $pid => $prod) {
                     $productCount++;
-
                     // Stream to file
                     fputcsv($csvFilePointer, $prod);
+                }
+            } else {
+                foreach ($results[1] as $product) {
+                    $pid = $product['pid'];
+                    if (isset($productSold[1][$pid]) && intval($productSold[1][$pid]) > 0) {
+                        $prod['id']            = $pid;
+                        $prod['name']          = trim($product['pName']);
+                        $prod['brand']         = trim($product['brand']);
+                        $prod['cat']           = trim($product['cat']);
+                        $prod['sku']           = trim($product['sku']);
+                        $prod['color']         = trim($product['color']);
+                        $prod['size']          = trim($product['size']);
+                        $prod['imageUrl']      = trim($product['image_url']);
+                        $prod['domain']        = trim($product['url']);
+                        $prod['price']         = '$' . $productSold[1][$pid]['price'];
+                        $prod['soldLast1Week'] = $productSold[1][$pid]['units'];
+
+                        if (count($results) > 1) {
+                            for ($i = 2; $i <= count($results); $i++) {
+                                if (isset($productSold[$i][$pid])) {
+                                    $prod['soldLast' . $i . 'Week'] = $productSold[$i][$pid]['units'];
+                                } else {
+                                    $prod['soldLast' . $i . 'Week'] = 0;
+                                }
+                            }
+                        }
+
+                        if (isset($website['event'])) {
+                            $prod['eventName']   = trim($product['eventName']);
+                            $prod['startDate']   = trim($product['startDate']);
+                            $prod['endDate']     = trim($product['endDate']);
+                            $prod['fulfillment'] = trim($product['fulfillment_point']);
+                        }
+                        $productCount++;
+
+                        // Stream to file
+                        fputcsv($csvFilePointer, $prod);
+                    }
                 }
             }
 
@@ -177,6 +252,7 @@ class EmailReport2Command extends ContainerAwareCommand
         }
 
         if ($haveDataToSend) {
+            die;
             $mailer->send($message);
             foreach ($zippedFilename as $file) {
                 unlink($file);
