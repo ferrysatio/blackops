@@ -10,7 +10,7 @@ use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand,
 
 class EmailReport2Command extends ContainerAwareCommand
 {
-    protected function configure()
+    protected function configure()  
     {
         $this->setName('email:report:salesV2')
             ->setDescription('Email weekly report for web sales')
