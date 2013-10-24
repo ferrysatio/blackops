@@ -98,6 +98,7 @@ class EmailReport2Command extends ContainerAwareCommand
             $csvFilePointer = fopen($csvFileName, 'w');
 
             $header = array(
+                'Domain',
                 'PID',
                 'Product',
                 'Brand',
@@ -158,6 +159,7 @@ class EmailReport2Command extends ContainerAwareCommand
                                 $productsList[$pid]['soldLast' . $week . 'Week']  = $productSold[$week][$pid]['units'];
                             }
                         } else {
+                            $prod['domain']        = $website['name'];
                             $prod['id']            = $pid;
                             $prod['name']          = trim($product['pName']);
                             $prod['brand']         = trim($product['brand']);
@@ -201,6 +203,7 @@ class EmailReport2Command extends ContainerAwareCommand
                 foreach ($results[1] as $product) {
                     $pid = $product['pid'];
                     if (isset($productSold[1][$pid]) && intval($productSold[1][$pid]) > 0) {
+                        $prod['domain']        = $website['name'];
                         $prod['id']            = $pid;
                         $prod['name']          = trim($product['pName']);
                         $prod['brand']         = trim($product['brand']);
