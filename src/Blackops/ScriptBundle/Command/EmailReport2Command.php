@@ -255,7 +255,6 @@ class EmailReport2Command extends ContainerAwareCommand
         }
 
         if ($haveDataToSend) {
-            die;
             $mailer->send($message);
             foreach ($zippedFilename as $file) {
                 unlink($file);
