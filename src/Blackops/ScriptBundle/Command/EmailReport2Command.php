@@ -168,7 +168,7 @@ class EmailReport2Command extends ContainerAwareCommand
                             $prod['color']         = trim($product['color']);
                             $prod['size']          = trim($product['size']);
                             $prod['imageUrl']      = trim($product['image_url']);
-                            $prod['domain']        = trim($product['url']);
+                            $prod['site']          = trim($product['url']);
 
                             if (isset($website['event'])) {
                                 $prod['eventName']   = trim($product['eventName']);
@@ -212,7 +212,7 @@ class EmailReport2Command extends ContainerAwareCommand
                         $prod['color']         = trim($product['color']);
                         $prod['size']          = trim($product['size']);
                         $prod['imageUrl']      = trim($product['image_url']);
-                        $prod['domain']        = trim($product['url']);
+                        $prod['site']          = trim($product['url']);
                         $prod['price']         = '$' . $productSold[1][$pid]['price'];
                         $prod['soldLast1Week'] = $productSold[1][$pid]['units'];
 
