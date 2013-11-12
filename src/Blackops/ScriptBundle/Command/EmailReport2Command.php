@@ -94,7 +94,7 @@ class EmailReport2Command extends ContainerAwareCommand
                 }
             }
 
-            $csvFileName    = '/tmp/' . uniqid('blackops_' . $website['name'] . '_' . date('Y-m-d_H-i-s') . '_') . '.csv';
+            $csvFileName    = '/tmp/' . 'blackops_' . $website['name'] . '.csv';
             $csvFilePointer = fopen($csvFileName, 'w');
 
             $header = array(
