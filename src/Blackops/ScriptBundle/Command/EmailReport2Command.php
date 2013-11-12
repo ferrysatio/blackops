@@ -112,17 +112,17 @@ class EmailReport2Command extends ContainerAwareCommand
 
             if ($allSales) {
                 if (isset($website['event'])) {
+                    for ($i = 1; $i <= count($results); $i++) {
+                        $header = array_merge($header, array(
+                            'Price last ' . $i . ' week',
+                            'Sold last ' . $i . ' week',
+                        ));
+                    }
                     $header = array_merge($header, array(
                         'Event Name',
                         'Event Start',
                         'Event End',
                         'Fulfillment'
-                    ));
-                }
-                for ($i = 1; $i <= count($results); $i++) {
-                    $header = array_merge($header, array(
-                        'Price last ' . $i . ' week',
-                        'Sold last ' . $i . ' week',
                     ));
                 }
             } else {
@@ -170,12 +170,6 @@ class EmailReport2Command extends ContainerAwareCommand
                             $prod['imageUrl']      = trim($product['image_url']);
                             $prod['site']          = trim($product['url']);
 
-                            if (isset($website['event'])) {
-                                $prod['eventName']   = trim($product['eventName']);
-                                $prod['startDate']   = trim($product['startDate']);
-                                $prod['endDate']     = trim($product['endDate']);
-                                $prod['fulfillment'] = trim($product['fulfillment_point']);
-                            }
 
                             // initialise all price and sold columns
                             for ($j = 1; $j <= count($results); $j++) {
@@ -187,6 +181,13 @@ class EmailReport2Command extends ContainerAwareCommand
                             if (isset($productSold[$week][$pid])) {
                                 $prod['priceLast' . $week . 'Week'] = '$' . $productSold[$week][$pid]['price'];
                                 $prod['soldLast' . $week . 'Week']  = $productSold[$week][$pid]['units'];
+                            }
+
+                            if (isset($website['event'])) {
+                                $prod['eventName']   = trim($product['eventName']);
+                                $prod['startDate']   = trim($product['startDate']);
+                                $prod['endDate']     = trim($product['endDate']);
+                                $prod['fulfillment'] = trim($product['fulfillment_point']);
                             }
 
                             $productsList[$pid] = $prod;
